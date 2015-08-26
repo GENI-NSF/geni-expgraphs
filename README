@@ -1,0 +1,23 @@
+
+On the machine where you want to run this code:
+ * Install geni-lib
+   	   http://geni-lib.readthedocs.org/en/latest/intro/install.html
+   Note that I am running a very old version of geni-lib [1]
+ * Configure geni-lib
+   	   geni-lib.readthedocs.org/en/latest/tutorials/portalcontext.html
+ * copy the contents of the directory containing this README to the remove machine
+ * put the three files in the appropriate place
+   * checkvmavail.py goes in /path/to/geni-lib/samples
+   * avail.sh and test.sh goes in a location of your choice (modify the paths in these files appropriately)
+ * Run test.sh to see if the script runs
+ * If it works, configure a crontab (crontab -e) with the following contents (be sure to modify the path appropriately):
+# m h  dom mon dow   command
+*/30 * * * * /home/sedwards/avail.sh
+1 1 * * * rm /tmp/tmp*; rm /tmp/vmavail*
+
+
+[1] changeset:   133:98146750bb84
+tag:         tip
+user:        Nick Bastin <nick.bastin@gmail.com>
+date:        Wed Sep 24 11:54:12 2014 -0700
+summary:     Set up MTU for VTS circuitplanes, vts aggregate name iteration

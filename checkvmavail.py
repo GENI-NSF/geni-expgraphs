@@ -1,5 +1,8 @@
 # Copyright (c) 2014  Barnstormer Softworks, Ltd.
 
+# This file is a modified version of a script distributed with geni-lib
+# It was modified by Sarah Edwards, Raytheon BBN Technologies in 2014
+
 import multiprocessing as MP
 import time
 
