@@ -52,6 +52,8 @@ On the machine where you want to run this code:
 # m h  dom mon dow   command
 */30 * * * * /home/sedwards/avail.sh
 1 1 * * * rm /tmp/tmp*; rm /tmp/vmavail*
+
+   NOTE: Once you do this, you will receive regular emails if a rack is down (every half hour as specified in the crontab) [3].  You should not generally receive email otherwise.  That said, sometime geni-lib gets unhappy with an aggregate or there is a transient error both of which you can ignore.
  9) Wait awhile and see if the graphs are updating.  
  10) Modify the ExpGraphs wiki pages (for Day, Week, and Month) to point to the graphs for this server instead of the graphs from sergyar.
 
@@ -82,3 +84,7 @@ gmetric.report('utah_ig_pc3_xen_reserved', 'int16', '%d' % report_count, 'num')
 
 
 http://groups.geni.net/syseng/wiki/OpsLabMonitoring#Removeaclientfrommonitoring
+
+[3] Congratulations, you will now be one of the first people to know when a rack goes down.  
+If a rack is down for awhile and you want the cron email to stop or you otherwise feel moved to report it (you don't have to), follow the instructions here:
+http://groups.geni.net/syseng/wiki/ExpReporting
