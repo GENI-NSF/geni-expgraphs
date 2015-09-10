@@ -33,7 +33,8 @@ def query_aggregate (context, site, q):
           continue
     q.put((site.name, res, len(total)-len(avail), len(total), avail_ips, config_ips))
   except Exception:    
-    q.put((site.name, ["OFFLINE"], None, None, None, None))
+#    q.put((site.name, ["OFFLINE"], None, None, None, None))
+    q.put((site.name, ["OFFLINE"], 0, 0, 0, 0))
 
 
 def do_parallel ():
@@ -61,22 +62,30 @@ def do_parallel ():
     except:
       print pair
       raise
+
     if res == ["OFFLINE"]:
-      continue
+      updown = 0
+    else:
+      updown = 1
+    rack[site_name]=(rawused, rawtotal, int(avail_ips), int(config_ips), updown)
     data[site_name] = {}
-    rack[site_name]=(rawused, rawtotal, int(avail_ips), int(config_ips))
-    for (cid, count, typ) in res:
-      if typ == "Xen":
-        site_xen += 100 - int(count)
-        xen_avail += int(count)
-        xen_total += 100
-      elif typ == "OpenVZ":
-        site_vz += 100 - int(count)
-        vz_avail += int(count)
-        vz_total += 100
-      entries.append("   [%s] %s/100 (%s)" % (cid, count, typ))
-      data[site_name][cid] = (100-int(count), typ)
-    print "%02d %s (Used: %d Xen, %d OpenVZ, Avail IPs: %s/%s)" % (idx+1, site_name, site_xen, site_vz, int(avail_ips), int(config_ips))
+    if res != ["OFFLINE"]:
+      for (cid, count, typ) in res:
+        if typ == "Xen":
+          site_xen += 100 - int(count)
+          xen_avail += int(count)
+          xen_total += 100
+        elif typ == "OpenVZ":
+          site_vz += 100 - int(count)
+          vz_avail += int(count)
+          vz_total += 100
+        entries.append("   [%s] %s/100 (%s)" % (cid, count, typ))
+        data[site_name][cid] = (100-int(count), typ)
+    if updown:
+      status_str = "up"
+    else:
+      status_str = "down"
+    print "%02d %s is %s (Used: %d Xen, %d OpenVZ, Avail IPs: %s/%s)" % (idx+1, site_name, status_str, site_xen, site_vz, int(avail_ips), int(config_ips))
     for entry in entries:
       print entry
 
@@ -120,6 +129,7 @@ def report( xen, vz, data, rack, debug=False ):
       raw_avail += avail
       avail_ips = int(site_val[2])
       config_ips = int(site_val[3])
+      updown = int(site_val[4])
       ip_avail += avail_ips
       ip_total += config_ips
       if debug:
@@ -127,11 +137,13 @@ def report( xen, vz, data, rack, debug=False ):
 	print '%s_ig_rawpc_available %s'%(location, avail)
         print '%s_ig_publicips_available %s' % (location,avail_ips)
         print '%s_ig_publicips_total %s' % (location,config_ips)
+        print '%s_ig_status %s' % (location,updown)
       else:
         gmetric.report('%s_ig_rawpc_reserved' % (location), 'int16', '%d' % reserved, 'num')
         gmetric.report('%s_ig_rawpc_available' % (location), 'int16', '%d' % avail, 'num')
         gmetric.report('%s_ig_publicips_available' % (location), 'int16', '%d' % avail_ips, 'num')
         gmetric.report('%s_ig_publicips_total' % (location), 'int16', '%d' % config_ips, 'num')
+        gmetric.report('%s_ig_status' % (location), 'int16', '%d' % updown, 'num')
   if debug:
     print 'ig_rawpc_reserved %s'%(raw_used)
     print 'ig_rawpc_available %s'%(raw_avail)
