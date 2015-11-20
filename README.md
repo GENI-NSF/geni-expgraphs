@@ -63,5 +63,5 @@ Run the wrapper script periodically. The sample entry below runs it every
 # Gather aggregate availabilty and push to ganglia
 */30 * * * * /path/to/geni-expgraphs/avail.sh
 # Clean up detritus from aggregate availability
-5 1 * * * rm /tmp/tmp*; rm /tmp/vmavail*
+5 1 * * * rm /tmp/vmavail*
 ```

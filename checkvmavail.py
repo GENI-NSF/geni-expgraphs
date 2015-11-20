@@ -3,6 +3,7 @@
 # This file is a modified version of a script distributed with geni-lib
 # It was modified by Sarah Edwards, Raytheon BBN Technologies in 2014
 
+import os
 import multiprocessing as MP
 import time
 
@@ -158,3 +159,4 @@ def report( xen, vz, data, rack, debug=False ):
 if __name__ == '__main__':
   xen, vz, data, rack = do_parallel()
   report(xen, vz, data, rack, debug=False)
+  os.remove(context.cf.key)
