@@ -4,27 +4,42 @@ The code in this directory is used to generate the graphs seen on:
     http://groups.geni.net/geni/wiki/ExpGraphs
 
 There are four files in this directory::
- * checkvmavail.py - a geni-lib script that queries all the IG aggregates and pushes statistics to ganglia (this is based on a similar script distributed with geni-lib in the samples directory)
- * instageni.py - a copy of the geni-lib file specifying the instageni aggregates for use with the script
- * avail.sh - a shell script that can be used in a cronjob to run the above script
- * test.sh - a minor modification of the above script to use in testing (it prints the debug output to standard out)
+ * checkvmavail.py - a geni-lib script that queries all the IG aggregates and
+   pushes statistics to ganglia (this is based on a similar script distributed
+   with geni-lib in the samples directory)
+ * ganglia_metric.py - a library for submitting data to ganglia
+ * avail.sh - a shell script that can be used in a cronjob to run the above
+   script
+ * test.sh - a minor modification of the above script to use in testing (it
+   prints the debug output to standard out)
 
-checkvmavail.py does all the heavy lifting.  It calls listresources at each aggregate, parses the returned values, and submits the values to ganglia using commands of this form:
+checkvmavail.py does all the heavy lifting.  It calls listresources at each
+aggregate, parses the returned values, and submits the values to ganglia using
+commands of this form:
 		gmetric.report('ig_rawpc_reserved', 'int16', '%d' % raw_used, 'num')
 
-In [2] I have some cryptic notes I took from a conversation with Chaos about how to use the gmetric function.  The first field is a string of your choosing.  The second and third fields are the data point being submitted and the last field is the units shown on the graph.
+In [1] I have some cryptic notes I took from a conversation with Chaos about
+how to use the gmetric function.  The first field is a string of your choosing.
+The second and third fields are the data point being submitted and the last
+field is the units shown on the graph.
 
-gmetric.report submits a single datapoint for this server (in my case sergyar) about the statistic specified in the first field.  ganglia keeps track of these fields and generates nice graphs from that ddata.
+gmetric.report submits a single datapoint for this server (in my case sergyar)
+about the statistic specified in the first field.  ganglia keeps track of these
+fields and generates nice graphs from that ddata.
 
-The graphs are organized and published via a hand crafted wiki page (the ExpGraphs url from above).
+The graphs are organized and published via a hand crafted wiki page (the
+ExpGraphs url from above).
 
-The page of graphs for your server are available at a url like the following (replace sergyar with your hostname):
+The page of graphs for your server are available at a url like the following
+(replace sergyar with your hostname):
 http://monitor.gpolab.bbn.com/ganglia/?m=load_one&r=hour&s=descending&c=BBN+Internal&h=sergyar.gpolab.bbn.com&sh=1&hc=4
 
-Once you complete the steps below you will be able to find your machine listed in the pulldown on the top of this page:
+Once you complete the steps below you will be able to find your machine listed
+in the pulldown on the top of this page:
 http://monitor.gpolab.bbn.com/ganglia/?c=BBN%20Internal&m=&r=hour&s=descending&hc=4
 
-The individual graphs are available with urls like the following (replace sergyar.gpolab.bbn.com with the domain of your host):
+The individual graphs are available with urls like the following (replace
+sergyar.gpolab.bbn.com with the domain of your host):
 http://monitor.gpolab.bbn.com/ganglia/graph.php?&c=BBN%20Internal&h=sergyar.gpolab.bbn.com&m=gpo_ig_pc1_openvz_reserved&r=week&z=medium&jr=&js=&vl=num&x=100&n=0
 
 Below are some (untested) steps to reproduce this setup on a server of your own.
@@ -34,51 +49,49 @@ http://groups.geni.net/syseng/wiki/SarahEdwards/MonitoringHack
 
 Getting started:
  1) Pick a machine to run the code on
- 2) Talk to gpo-infra and have them configure ganglia to allow this machine to submit data.  Without this the ganglia server will not accept your data.
- 3) Have infra run puppet to install ganglia_metric.py on your machine.  Alternatively, copy the file from nye:
-scp nye:/usr/local/lib/ganglia_metric.py .
-scp ganglia_metric.py sergyar:.
-sudo cp ganglia_metric.py /usr/local/lib/ganglia_metric.py
+ 2) Talk to gpo-infra and have them configure ganglia to allow this machine to
+    submit data.  Without this the ganglia server will not accept your data.
 
 On the machine where you want to run this code:
- 4) Install geni-lib
+ 3) Install geni-lib
    	   http://geni-lib.readthedocs.org/en/latest/intro/install.html
-   Note that I am running a very old version of geni-lib [1]
- 5) Configure geni-lib using your personal certificate and omni.bundle
+ 4) Configure geni-lib using your personal certificate and omni.bundle
     For recent versions of geni-lib you follow the instructions here:
    	   geni-lib.readthedocs.org/en/latest/tutorials/portalcontext.html
-    If you are using the old geni-lib, then you need to copy your cert, etc into place and modify the following file appropriately:
+    If you are using the old geni-lib, then you need to copy your cert, etc
+    into place and modify the following file appropriately:
        	   geni-lib/samples/example_config.py
- 6) copy the contents of the directory containing this README to the remote machine
- 7) put the four files in the appropriate place
+ 5) copy the contents of the directory containing this README to the remote machine
+ 6) put the four files in the appropriate place
    * checkvmavail.py goes in /path/to/geni-lib/samples
    * (optional) instageni.py goes in /path/to/geni-lib/geni/aggregate/instageni.py
-   * avail.sh and test.sh goes in a location of your choice (modify the paths in these files appropriately)
- 8) Run test.sh to see if the script runs (or just run the script directly)
- 9) If it works, configure a crontab (crontab -e) with the following contents (be sure to modify the path appropriately):
+   * avail.sh and test.sh goes in a location of your choice (modify the paths
+     in these files appropriately)
+ 7) Run test.sh to see if the script runs (or just run the script directly)
+ 8) If it works, configure a crontab (crontab -e) with the following contents
+    (be sure to modify the path appropriately):
 # m h  dom mon dow   command
 */30 * * * * /home/sedwards/avail.sh
-1 1 * * * rm /tmp/tmp*; rm /tmp/vmavail*
+1 1 * * * rm /tmp/vmavail*
 
-   NOTE: Once you do this, you will receive regular emails if a rack is down (every half hour as specified in the crontab) [3].  You should not generally receive email otherwise.  That said, sometime geni-lib gets unhappy with an aggregate or there is a transient error both of which you can ignore.
+   NOTE: Once you do this, you will receive regular emails if a rack is down
+   (every half hour as specified in the crontab) [2].  You should not generally
+   receive email otherwise.  That said, sometime geni-lib gets unhappy with an
+   aggregate or there is a transient error both of which you can ignore.
  10) Wait awhile and see if the graphs are updating.  
- 11) Modify the ExpGraphs wiki pages (for Day, Week, and Month) to point to the graphs for this server instead of the graphs from sergyar.
+ 11) Modify the ExpGraphs wiki pages (for Day, Week, and Month) to point to
+     the graphs for this server instead of the graphs from sergyar.
 
 Good luck!
 
 
-[1] changeset:   133:98146750bb84
-tag:         tip
-user:        Nick Bastin <nick.bastin@gmail.com>
-date:        Wed Sep 24 11:54:12 2014 -0700
-summary:     Set up MTU for VTS circuitplanes, vts aggregate name iteration
-
-[2] Sarah's cryptic notes from talking to Chaos about submitting data to ganglia:
+[1] Sarah's cryptic notes from talking to Chaos about submitting data to
+    ganglia:
 
 Omit -S to just submit as sergyar.
 
 while /bin/true; do
- gmetric -n tmitchel_usage -v 85 -t int32 -u VMs -d 600 
+ gmetric -n my_metric -v 85 -t int32 -u VMs -d 600 
  sleep 30
 done
 
@@ -92,6 +105,8 @@ gmetric.report('utah_ig_pc3_xen_reserved', 'int16', '%d' % report_count, 'num')
 
 http://groups.geni.net/syseng/wiki/OpsLabMonitoring#Removeaclientfrommonitoring
 
-[3] Congratulations, you will now be one of the first people to know when a rack goes down.  
-If a rack is down for awhile and you want the cron email to stop or you otherwise feel moved to report it (you don't have to), follow the instructions here:
+[2] Congratulations, you will now be one of the first people to know when a
+rack goes down. If a rack is down for awhile and you want the cron email to
+stop or you otherwise feel moved to report it (you don't have to), follow the
+instructions here:
 http://groups.geni.net/syseng/wiki/ExpReporting
