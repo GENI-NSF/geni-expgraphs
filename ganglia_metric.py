@@ -1,8 +1,4 @@
 ##### Python module to report data via ganglia
-#
-# DO NOT EDIT except via CVS (cvs.gpolab.bbn.com:/srv/cvs)
-# 
-# RCS info: $Id: default,v 1.17 2012/01/14 03:48:54 chaos Exp $
 
 import socket
 import string
